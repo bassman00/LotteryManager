@@ -7,6 +7,7 @@ namespace LotteryManager
     {
         private List<int> _whiteBalls = new List<int>();
         private List<int> _redBalls = new List<int>();
+        private int _multiplier = 1;
 
         public DateTime TicketDate { get; private set; }
 
@@ -68,6 +69,13 @@ namespace LotteryManager
         public List<int>GetRedBalls()
         {
             return _redBalls;
+        }
+
+        public int GetMultiplier() { return _multiplier; }
+        public void SetMultiplier(int multiplier)
+        {
+            if ((multiplier >= 2 && multiplier <= 5) || multiplier == 10)
+                _multiplier = multiplier;
         }
      }
 }

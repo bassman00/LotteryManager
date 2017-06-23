@@ -33,7 +33,9 @@ namespace LotteryManager
         static string fourWhite = "4 WB   ";
         static string fiveWhite = "5 WB   ";
 
-		public static Dictionary<string, int> WinGrid = new Dictionary<string, int>();
+		public static Dictionary<string, long> WinGrid = new Dictionary<string, long>();
+
+        public static Dictionary<string, double> PrizeList = new Dictionary<string, double>();
 
 
 
@@ -120,7 +122,19 @@ namespace LotteryManager
 
 		public static void Main(string[] args)
         {
-            WinGrid.Add(totalPlays, 0);
+            PrizeList.Add(totalPlays, -2.0);
+            PrizeList.Add(loser, 0.0);
+            PrizeList.Add(pbOnly, 4.0);
+            PrizeList.Add(pbPlusOne, 4.0);
+            PrizeList.Add(pbPlusTwo, 7.0);
+			PrizeList.Add(threeWhite, 7.0);
+			PrizeList.Add(pbPlusThree, 100.0);
+			PrizeList.Add(fourWhite, 100.0);
+            PrizeList.Add(pbPlusFour, 50000.0);
+            PrizeList.Add(fiveWhite, 1000000.00);
+            PrizeList.Add(grandPrize, 20000000.00);
+
+			WinGrid.Add(totalPlays, 0);
             WinGrid.Add(loser, 0);
             WinGrid.Add(pbOnly, 0);
 			WinGrid.Add(pbPlusOne, 0);
@@ -165,12 +179,20 @@ namespace LotteryManager
         {
             Console.Clear();
             string output = "";
-            foreach(KeyValuePair<string, int> entry in WinGrid)
+            double netWinnings = 0;
+            foreach(KeyValuePair<string, long> entry in WinGrid)
             {
-                string line = String.Format("{0} - {1,15:n0}\n", entry.Key, entry.Value);
+                double dollars = entry.Value * PrizeList[entry.Key];
+                netWinnings += dollars;
+				string line = String.Format("{0} - {1,15:n0} - {2,20:c}\n", 
+                                            entry.Key, entry.Value, dollars);
                 output += line;
             }
             Console.WriteLine(output);
+            string totalLine = String.Format("Total 'Winnings': {0,20:c} | Net: {1,20:c}",
+                                             netWinnings + (WinGrid[totalPlays] * -PrizeList[totalPlays]),
+                                             netWinnings);
+            Console.WriteLine(totalLine);
         }
     }
 }
