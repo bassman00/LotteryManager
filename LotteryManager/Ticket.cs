@@ -51,7 +51,7 @@ namespace LotteryManager
                 wb += ball.ToString() + ", ";
             }
             string rb = _redBalls[0].ToString();
-            string retval = String.Format("{0} - {1}{2}", TicketDate, wb, rb);
+            string retval = String.Format("{0} - {1}{2}", TicketDate.ToShortDateString(), wb, rb);
 
             return retval;
         }
