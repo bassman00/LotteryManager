@@ -66,8 +66,10 @@ namespace LotteryManager
 
         private readonly Dictionary<string, long> WinGrid = new Dictionary<string, long>();
         private readonly Dictionary<string, double> PrizeList = new Dictionary<string, double>();
+        private readonly Dictionary<int, long> WhiteNumberFrequency = new Dictionary<int, long>();
+		private readonly Dictionary<int, long> RedNumberFrequency = new Dictionary<int, long>();
 
-        public List<Ticket> PlayerTicketList = new List<Ticket>();
+		public List<Ticket> PlayerTicketList = new List<Ticket>();
 
         public PowerballSimulator()
         {
@@ -94,6 +96,15 @@ namespace LotteryManager
 			WinGrid.Add(pbPlusFour, 0);
 			WinGrid.Add(fiveWhite, 0);
 			WinGrid.Add(jackpot, 0);
+
+            for (int i = 1; i < PowerballLimits.WhiteBallMax + 1; i++)
+            {
+                WhiteNumberFrequency.Add(i, 0);
+            }
+            for (int i = 1; i < PowerballLimits.RedBallMax + 1; i++)
+            {
+                RedNumberFrequency.Add(i, 0);
+            }
 		}
 
         public int AddPlayerTicket(Ticket pticket)
@@ -111,11 +122,12 @@ namespace LotteryManager
 
 			while (input.ToUpper() != "Q")
 			{
-				WinGrid[totalPlays]++;
 				//Console.WriteLine(PlayerTicket.Show());
 				QuickPick(rand, Ticket);
-                foreach(Ticket PlayerTicket in PlayerTicketList)
-				    CompareTickets(PlayerTicket, Ticket);
+                foreach (Ticket PlayerTicket in PlayerTicketList)
+                {
+					CompareTickets(PlayerTicket, Ticket);
+                }
 				if (WinGrid[totalPlays] % 100000 == 0)
                 {
 					Console.Clear();
@@ -124,7 +136,23 @@ namespace LotteryManager
 
                     Console.WriteLine();
                     DisplayWins();
-				}
+
+                    if(Console.KeyAvailable)
+                    {
+                        ConsoleKeyInfo key = Console.ReadKey(true);
+                        if (key.Key == ConsoleKey.Q)
+                            input = "Q";
+                        else
+                        {
+                            if (key.Key == ConsoleKey.P)
+                            {
+                                while (!Console.KeyAvailable) {}
+
+                                Console.ReadKey(true);
+                            }
+                        }
+                    }
+                }
 			}
 		}
 
@@ -135,14 +163,20 @@ namespace LotteryManager
 			{
                 int whiteBall = rand.Next(PowerballLimits.WhiteBallMin, PowerballLimits.WhiteBallMax + 1);
                 while (!ticket.AddWhiteBall(whiteBall))
+                {
                     whiteBall = rand.Next(PowerballLimits.WhiteBallMin, PowerballLimits.WhiteBallMax + 1);
+                }
+				WhiteNumberFrequency[whiteBall]++;
 			}
             for (int i = 0; i < PowerballLimits.RedBallCount; i++)
             {
                 int redBall = rand.Next(PowerballLimits.RedBallMin, PowerballLimits.RedBallMax + 1);
                 while (!ticket.AddRedBall(redBall))
+                {
                     redBall = rand.Next(PowerballLimits.RedBallMin, PowerballLimits.RedBallMax + 1);
-            }
+                }
+				RedNumberFrequency[redBall]++;
+			}
    		}
 
 		public string CompareTickets(Ticket t1, Ticket t2)
@@ -151,7 +185,9 @@ namespace LotteryManager
 			int whiteMatch = 0;
 			int redMatch = 0;
 
-			foreach (int number in t1.GetWhiteBalls())
+			WinGrid[totalPlays]++; //=PlayerTicketList.Count;
+
+            foreach (int number in t1.GetWhiteBalls())
 			{
 				if (t2.GetWhiteBalls().Contains(number))
 				{
@@ -213,12 +249,16 @@ namespace LotteryManager
 						case 5:
 							WinGrid[fiveWhite]++;
 							break;
+
+                        default:
+                            WinGrid[loser]++;
+                            break;
 					};
 				}
 				results = String.Format("Winner!  Matched {0} white and {1} red", whiteMatch, redMatch);
 			}
 			else
-			{
+            {
 				WinGrid[loser]++;
 				results = "Loser!";
 			}

@@ -15,7 +15,7 @@ namespace LotteryManager
 
 			//var p2 = new PowerballTicket(DateTime.Today);
 			//p2.AddTicketNumbers(3, 8, 9, 24, 27, 11);
-			//pbs.AddPlayerTicket(p2);
+            //pbs.AddPlayerTicket(p2);
 
 			//var p3 = new PowerballTicket(DateTime.Today);
 			//p3.AddTicketNumbers(9, 24, 29, 40, 49, 5);
