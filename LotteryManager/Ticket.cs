@@ -9,7 +9,11 @@ namespace LotteryManager
         private List<int> _redBalls = new List<int>();
         private int _multiplier = 1;
 
-        public DateTime TicketDate { get; private set; }
+        public DateTime TicketDate { get; set; }
+
+        public Ticket()
+        {           
+        }
 
         public Ticket(DateTime date)
         {
@@ -44,14 +48,11 @@ namespace LotteryManager
 
         public string Show()
         {
-            string wb = "";
+            var whiteBallList = String.Join(", ", _whiteBalls);
+            var redBallList = String.Join(", ", _redBalls);
 
-            foreach (int ball in _whiteBalls)
-            {
-                wb += ball.ToString() + ", ";
-            }
-            string rb = _redBalls[0].ToString();
-            string retval = String.Format("{0} - {1}{2}", TicketDate.ToShortDateString(), wb, rb);
+            string retval = String.Format("{0} - (w){1}, (r){2}", TicketDate.ToShortDateString(), 
+                                          whiteBallList, redBallList);
 
             return retval;
         }
@@ -77,5 +78,5 @@ namespace LotteryManager
             if ((multiplier >= 2 && multiplier <= 5) || multiplier == 10)
                 _multiplier = multiplier;
         }
-     }
+    }
 }

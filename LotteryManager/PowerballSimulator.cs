@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace LotteryManager
 {
@@ -21,58 +22,47 @@ namespace LotteryManager
 
     }
 
-    public class PowerballTicket : Ticket
-    {
-        public PowerballTicket(DateTime date) : base(date)
-        {
-            
-        }
-
-        public PowerballTicket(DateTime date, int w1, int w2, int w3, int w4, int w5, int r1) 
-            : base(date)
-        {
-            AddWhiteBall(w1);
-			AddWhiteBall(w2);
-			AddWhiteBall(w3);
-			AddWhiteBall(w4);
-			AddWhiteBall(w5);
-			AddRedBall(r1);
-		}
-
-        public void AddTicketNumbers(int w1, int w2, int w3, int w4, int w5, int r1)
-		{
-			AddWhiteBall(w1);
-			AddWhiteBall(w2);
-			AddWhiteBall(w3);
-			AddWhiteBall(w4);
-			AddWhiteBall(w5);
-			AddRedBall(r1);
-		}
-	}
 
     public class PowerballSimulator
     {
-		private string totalPlays = "Total  ";
-		private string loser = "Loser  ";
-		private string pbOnly = "PB Only";
-		private string pbPlusOne = "PB + 1 ";
-		private string pbPlusTwo = "PB + 2 ";
-		private string pbPlusThree = "PB + 3 ";
-		private string pbPlusFour = "PB + 4 ";
-		private string jackpot = "Jackpot";
-		private string threeWhite = "3 WB   ";
-		private string fourWhite = "4 WB   ";
-		private string fiveWhite = "5 WB   ";
+        static private string totalDraws = "Drawings";
+        static private string totalPlays = "Total   ";
+        static private string loser = "Loser   ";
+        static private string pbOnly = "PB Only ";
+        static private string pbPlusOne = "PB + 1  ";
+        static private string pbPlusTwo = "PB + 2  ";
+        static private string pbPlusThree = "PB + 3  ";
+        static private string pbPlusFour = "PB + 4  ";
+        static private string jackpot = "Jackpot ";
+        static private string threeWhite = "3 WB    ";
+        static private string fourWhite = "4 WB    ";
+        static private string fiveWhite = "5 WB    ";
+
+        private readonly List<string> statKeys = new List<string>
+        {
+            totalDraws, totalPlays, loser, pbOnly, pbPlusOne, pbPlusTwo,
+            threeWhite, pbPlusThree, fourWhite, pbPlusFour, fiveWhite, jackpot
+        };
 
         private readonly Dictionary<string, long> WinGrid = new Dictionary<string, long>();
         private readonly Dictionary<string, double> PrizeList = new Dictionary<string, double>();
         private readonly Dictionary<int, long> WhiteNumberFrequency = new Dictionary<int, long>();
 		private readonly Dictionary<int, long> RedNumberFrequency = new Dictionary<int, long>();
 
+        private Random rand;
+
 		public List<Ticket> PlayerTicketList = new List<Ticket>();
 
-        public PowerballSimulator()
+        public long NumberOfDraws { get; set; }
+        public long DisplayFrequency { get; set; }
+
+        public PowerballSimulator(long draws, long displayFrequency)
         {
+			rand = new Random();
+			NumberOfDraws = draws;
+            DisplayFrequency = draws > 0 && displayFrequency > draws ? draws : displayFrequency;
+
+            PrizeList.Add(totalDraws, 0);
 			PrizeList.Add(totalPlays, -2.0);
 			PrizeList.Add(loser, 0.0);
 			PrizeList.Add(pbOnly, 4.0);
@@ -85,17 +75,8 @@ namespace LotteryManager
 			PrizeList.Add(fiveWhite, 1000000.00);
 			PrizeList.Add(jackpot, 20000000.00);
 
-			WinGrid.Add(totalPlays, 0);
-			WinGrid.Add(loser, 0);
-			WinGrid.Add(pbOnly, 0);
-			WinGrid.Add(pbPlusOne, 0);
-			WinGrid.Add(pbPlusTwo, 0);
-			WinGrid.Add(threeWhite, 0);
-			WinGrid.Add(pbPlusThree, 0);
-			WinGrid.Add(fourWhite, 0);
-			WinGrid.Add(pbPlusFour, 0);
-			WinGrid.Add(fiveWhite, 0);
-			WinGrid.Add(jackpot, 0);
+            foreach (string stat in statKeys)
+                WinGrid.Add(stat, 0);
 
             for (int i = 1; i < PowerballLimits.WhiteBallMax + 1; i++)
             {
@@ -107,6 +88,27 @@ namespace LotteryManager
             }
 		}
 
+        public void LoadTickets(string fpath)
+        {
+            var ticketStream = new StreamReader(fpath);
+            while(!ticketStream.EndOfStream)
+            {
+                string line = ticketStream.ReadLine();
+                line = line.Trim();
+                if(line.Length > 0 && line[0] != '#') //skip lines starting with #
+                {
+                    var ticket = new PowerballTicket(line);
+                    AddPlayerTicket(ticket);
+                }
+            }
+        }
+
+        public void ClearStats()
+        {
+            foreach (string stat in statKeys)
+                WinGrid[stat] = 0;
+        }
+
         public int AddPlayerTicket(Ticket pticket)
         {
             PlayerTicketList.Add(pticket);
@@ -116,27 +118,24 @@ namespace LotteryManager
         public void Run()
         {
 			var Ticket = new PowerballTicket(DateTime.Today);
-			Random rand = new Random();
 
 			string input = "";
 
-			while (input.ToUpper() != "Q")
+            while (input.ToUpper() != "Q")
 			{
 				//Console.WriteLine(PlayerTicket.Show());
+				if (NumberOfDraws > 0 && WinGrid[totalDraws] == NumberOfDraws)
+					break;
+
+				WinGrid[totalDraws]++;
 				QuickPick(rand, Ticket);
                 foreach (Ticket PlayerTicket in PlayerTicketList)
                 {
 					CompareTickets(PlayerTicket, Ticket);
                 }
-				if (WinGrid[totalPlays] % 100000 == 0)
+				if (WinGrid[totalPlays] % DisplayFrequency == 0)
                 {
-					Console.Clear();
-					foreach (Ticket PlayerTicket in PlayerTicketList)
-                        Console.WriteLine(PlayerTicket.Show());
-
-                    Console.WriteLine();
-                    DisplayWins();
-
+                    DisplayScreen();
                     if(Console.KeyAvailable)
                     {
                         ConsoleKeyInfo key = Console.ReadKey(true);
@@ -154,6 +153,7 @@ namespace LotteryManager
                     }
                 }
 			}
+            DisplayScreen();
 		}
 
 		public void QuickPick(Random rand, Ticket ticket)
@@ -195,11 +195,14 @@ namespace LotteryManager
 					whiteMatch++;
 				}
 			}
-			if (t1.GetRedBalls()[0] == t2.GetRedBalls()[0])
-			{
-				redMatch++;
-				winner = true;
-			}
+            foreach (int number in t1.GetRedBalls())
+            {
+                if (t2.GetRedBalls().Contains(number))
+                {
+                    redMatch++;
+                    winner = true;
+                }
+            }
 			string results = "";
 
 			if (winner)
@@ -274,15 +277,25 @@ namespace LotteryManager
 			{
 				double dollars = entry.Value * PrizeList[entry.Key];
 				netWinnings += dollars;
-				string line = String.Format("{0} - {1,15:n0} - {2,22:c}\n",
+				string line = String.Format("{0} - {1,15:n0} - {2,20:c0}\n",
 											entry.Key, entry.Value, dollars);
 				output += line;
 			}
 			Console.WriteLine(output);
-            string totalLine = String.Format("Total 'Winnings': {0,22:c}\nTotal Net: {1,30:c}",
+            string totalLine = String.Format("Total 'Winnings': {0,20:c0}\nTotal Net: {1,28:c0}",
 											 netWinnings + (WinGrid[totalPlays] * -PrizeList[totalPlays]),
 											 netWinnings);
 			Console.WriteLine(totalLine);
+		}
+
+        public void DisplayScreen()
+        {
+			Console.Clear();
+			foreach (Ticket PlayerTicket in PlayerTicketList)
+				Console.WriteLine(PlayerTicket.Show());
+
+			Console.WriteLine();
+			DisplayWins();
 		}
 
 	}
