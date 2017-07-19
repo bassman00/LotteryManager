@@ -8,7 +8,7 @@ namespace LotteryManager
     {
         public static void Main(string[] args)
         {
-            var pbs = new PowerballSimulator(26, 100000);
+            var pbs = new PowerballSimulator(0, 100000);
             pbs.LoadTickets("PowerballNumbers.csv");
 
             string input = "";
