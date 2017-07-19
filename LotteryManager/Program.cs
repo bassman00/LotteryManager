@@ -6,10 +6,18 @@ namespace LotteryManager
 {
     class MainClass
     {
+        public class ProgramArgs
+        {
+            public long Draws { get; set; }
+            public long DisplayFrequency { get; set; }
+            public string NumberFilePath { get; set; }
+        };
+
         public static void Main(string[] args)
         {
-            var pbs = new PowerballSimulator(0, 100000);
-            pbs.LoadTickets("PowerballNumbers.csv");
+            var Args = CheckArgs(args);
+            var pbs = new PowerballSimulator(Args.Draws, Args.DisplayFrequency);
+            pbs.LoadTickets(Args.NumberFilePath);
 
             string input = "";
             while (input.ToUpper() != "Q")
@@ -19,6 +27,31 @@ namespace LotteryManager
                 Console.WriteLine("Enter Q <ENTER> to quit or <ENTER> to rerun.");
                 input = Console.ReadLine();
             }
+        }
+
+        public static ProgramArgs CheckArgs(string[] args)
+        {
+            var Args = new ProgramArgs
+            {
+                Draws = 0,
+                DisplayFrequency = 100000,
+                NumberFilePath = "PowerballNumbers.csv"
+            };
+
+            if (args.Length > 0)
+            {
+                Args.Draws = Convert.ToInt64(args[0]);
+                if (args.Length > 1)
+                {
+                    Args.DisplayFrequency = Convert.ToInt64(args[1]);
+                    if (args.Length > 2)
+                    {
+                        Args.NumberFilePath = args[2];
+                    }
+                }
+            }
+
+            return Args;
         }
     }
 }
