@@ -17,8 +17,16 @@ namespace LotteryManager
         {
             var Args = CheckArgs(args);
             var pbs = new PowerballSimulator(Args.Draws, Args.DisplayFrequency);
-            pbs.LoadTickets(Args.NumberFilePath);
-
+            try
+            {
+                pbs.LoadTickets(Args.NumberFilePath);
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                Console.WriteLine(ex.InnerException.Message);
+                return;
+            }
             string input = "";
             while (input.ToUpper() != "Q")
             {
@@ -31,6 +39,7 @@ namespace LotteryManager
 
         public static ProgramArgs CheckArgs(string[] args)
         {
+            //Default params
             var Args = new ProgramArgs
             {
                 Draws = 0,

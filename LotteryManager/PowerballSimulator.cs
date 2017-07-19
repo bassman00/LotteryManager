@@ -90,18 +90,25 @@ namespace LotteryManager
 
         public void LoadTickets(string fpath)
         {
-            var ticketStream = new StreamReader(fpath);
-            while(!ticketStream.EndOfStream)
+            try
             {
-                string line = ticketStream.ReadLine();
-                line = line.Trim();
-                if(line.Length > 0 && line[0] != '#') //skip lines starting with #
+                var ticketStream = new StreamReader(fpath);
+                while (!ticketStream.EndOfStream)
                 {
-                    var ticket = new PowerballTicket(line);
-                    AddPlayerTicket(ticket);
+                    string line = ticketStream.ReadLine();
+                    line = line.Trim();
+                    if (line.Length > 0 && line[0] != '#') //skip lines starting with #
+                    {
+                        var ticket = new PowerballTicket(line);
+                        AddPlayerTicket(ticket);
+                    }
                 }
             }
-        }
+            catch(Exception ex)
+            {
+                throw new Exception("Unable to load ticket file", ex);
+            }
+         }
 
         public void ClearStats()
         {
