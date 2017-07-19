@@ -73,7 +73,7 @@ namespace LotteryManager
             PrizeList.Add(fourWhite, 100.0);
             PrizeList.Add(pbPlusFour, 50000.0);
             PrizeList.Add(fiveWhite, 1000000.00);
-            PrizeList.Add(jackpot, 20000000.00);
+            PrizeList.Add(jackpot, 40000000.00);
 
             foreach (string stat in statKeys)
                 WinGrid.Add(stat, 0);
@@ -278,14 +278,15 @@ namespace LotteryManager
 
         private void DisplayWins()
         {
-            string output = "";
+            string output = String.Format("             Prize Amt            Counts          Total Dollars\n");
+
             double netWinnings = 0;
             foreach (KeyValuePair<string, long> entry in WinGrid)
             {
                 double dollars = entry.Value * PrizeList[entry.Key];
                 netWinnings += dollars;
-                string line = String.Format("{0} - {1,15:n0} - {2,20:c0}\n",
-                                            entry.Key, entry.Value, dollars);
+                string line = String.Format("{0}  {3,11:c0}   {1,15:n0}   {2,20:c0}\n",
+                                            entry.Key, entry.Value, dollars, PrizeList[entry.Key]);
                 output += line;
             }
             Console.WriteLine(output);
@@ -301,6 +302,9 @@ namespace LotteryManager
             foreach (Ticket PlayerTicket in PlayerTicketList)
                 Console.WriteLine(PlayerTicket.Show());
 
+            Console.WriteLine();
+            Console.WriteLine("Number of Draws: {0}", NumberOfDraws);
+            Console.WriteLine("Display Frequency: {0}", DisplayFrequency);
             Console.WriteLine();
             DisplayWins();
         }
